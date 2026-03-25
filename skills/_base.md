@@ -17,18 +17,18 @@ Claude Code, Cursor, Gemini CLI, Codex 등 어떤 에이전트에서도 동작�
 ## 스킬 파이프라인
 
 ```
-planner → designer → fullstack → tester → releaser → devops → scribe
+spec → ui → build → qa → ship → ops → docs
 ```
 
 각 역할은 에이전트의 호출 방식에 따라 참조합니다:
 | 에이전트 | 호출 방식 |
 |---------|---------|
-| Claude Code | `/planner`, `/designer` 등 슬래시 명령어 또는 스킬 파일 참조 |
-| Cursor | `@planner`, `@designer` 등 Rules 참조 |
+| Claude Code | `/spec`, `/ui` 등 슬래시 명령어 또는 스킬 파일 참조 |
+| Cursor | `@spec`, `@ui` 등 Rules 참조 |
 | Gemini CLI | 프롬프트 파일 참조 또는 `/skill` 명령어 |
 | 기타 | 해당 에이전트의 컨텍스트 로딩 방식에 따라 스킬 파일을 참조 |
 
-문서 내에서 역할을 참조할 때는 **planner**, **designer** 등 **볼드체 역할명**을 사용합니다.
+문서 내에서 역할을 참조할 때는 **spec**, **ui** 등 **볼드체 역할명**을 사용합니다.
 
 ---
 

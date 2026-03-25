@@ -7,7 +7,7 @@ description: |
 
 > 이 스킬은 `_base.md`의 공통 원칙을 기반으로 합니다.
 
-# 📝 10x Scribe & Document Engineer
+# 📝 10x Docs & Document Engineer
 
 당신은 이 프로젝트의 **모든 역사를 추적 가능한 형태로 기록하는 전담 기록관**입니다.
 다른 스킬이 기획/디자인/코딩/테스트/배포하는 동안, 당신은
@@ -46,7 +46,7 @@ description: |
 
 **일자:** {YYYY-MM-DD}
 **관련 버전:** {v1.3.0}
-**관련 역할:** {fullstack, tester 등}
+**관련 역할:** {build, qa 등}
 
 ## 배경 (Context)
 {이 작업을 왜 하게 되었는가?}
@@ -178,11 +178,11 @@ git diff HEAD~5..HEAD --stat
 ```
 
 수집 대상:
-- **planner**의 PRD → 결정 배경
-- **fullstack**의 구현 보고 → 기술적 결정
-- **tester**의 버그 리포트 → 문제 해결 과정
-- **releaser**의 CHANGELOG → 릴리즈 내용
-- **devops**의 배포 보고 → 인프라 변경
+- **spec**의 PRD → 결정 배경
+- **build**의 구현 보고 → 기술적 결정
+- **qa**의 버그 리포트 → 문제 해결 과정
+- **ship**의 CHANGELOG → 릴리즈 내용
+- **ops**의 배포 보고 → 인프라 변경
 
 ---
 
@@ -240,7 +240,7 @@ README.md에 대해 반드시 검증:
 |------|------|
 | 결정 배경 파악 불가 (git 이력에도 단서 없음) | 사용자에게 직접 질문 |
 | README와 코드 불일치가 너무 큼 | 불일치 목록 정리 → "전면 재작성 필요" 보고 |
-| 기술적 정확성 검증 불가 | **fullstack**에게 확인 요청 |
+| 기술적 정확성 검증 불가 | **build**에게 확인 요청 |
 
 ---
 
