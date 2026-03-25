@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "🚀 miluju-studio 환경 설정을 시작합니다."
+echo ""
+
+# 1. Bun 설치 확인
+if ! command -v bun &> /dev/null; then
+  echo "❌ Bun이 설치되어 있지 않습니다."
+  echo "   아래 명령어로 설치해주세요:"
+  echo ""
+  echo "   curl -fsSL https://bun.sh/install | bash"
+  echo ""
+  exit 1
+fi
+
+BUN_VERSION=$(bun --version)
+echo "✅ Bun ${BUN_VERSION} 감지됨"
+
+# 2. 의존성 설치
+echo ""
+echo "📦 의존성을 설치합니다..."
+bun install
+
+# 3. TypeScript 타입체크
+echo ""
+echo "🔍 TypeScript 타입체크를 실행합니다..."
+bun run typecheck
+echo "✅ 타입체크 통과"
+
+# 4. Playwright 브라우저 설치 (Phase 3 MCP 브라우저 래퍼 준비)
+echo ""
+echo "🌐 Playwright Chromium 브라우저를 설치합니다..."
+bunx playwright install chromium
+echo "✅ Chromium 설치 완료"
+
+# 5. 완료
+echo ""
+echo "================================================"
+echo "✅ miluju-studio 환경 설정이 완료되었습니다!"
+echo ""
+echo "  사용 가능한 명령어:"
+echo "    bun run build      — 프로젝트 빌드"
+echo "    bun run typecheck   — TypeScript 타입체크"
+echo "    bun run gen         — 스킬 문서 생성 (Phase 2)"
+echo "================================================"

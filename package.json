@@ -1,0 +1,23 @@
+{
+  "name": "miluju-studio",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "1인 개발자를 위한 AI 에이전트 워크플로우 OS",
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "typecheck": "tsc --noEmit",
+    "gen": "bun run src/gen-skill-docs.ts",
+    "setup": "./setup"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@playwright/mcp": "^0.0.68",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.5"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.0",
+    "typescript": "^5.7.0"
+  }
+}
