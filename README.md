@@ -25,11 +25,12 @@
   - `package.json` (+ `typescript`, `@playwright/mcp` 등 의존성) 세팅. ✅
   - 사용자 환경에 단일 명령어로 설치가 가능한 `setup` 쉘 스크립트 작성. ✅
 
-### Phase 2: 스킬 생성기 (Skill Generator)
+### Phase 2: 스킬 생성기 (Skill Generator) ✅
 - **목표**: 일관된 스킬 생태계를 위한 변환/파싱 파이프라인.
-- **주요 작업 (`scripts/gen-skill-docs.ts`)**:
-  - `SKILL.md.tmpl` 템플릿과 메타데이터를 파싱.
-  - 마크다운 파싱을 거쳐 Claude/Codex/Cursor 등 에이전트별 특성에 맞는 구문으로 변환.
+- **주요 작업 (`src/gen-skill-docs.ts`)**:
+  - `_base.md` + 스킬 마크다운을 파싱하여 병합. ✅
+  - 에이전트별 변환 (Claude Code: `/slash`, Cursor: `@mention`, Gemini: 파일 참조). ✅
+  - `bun run gen` → `dist/skills/{agent}/{skill}.md` (3 에이전트 × 7 스킬 = 21개 파일). ✅
 
 ### Phase 3: MCP 브라우저 래퍼 (Browser Daemon) - 핵심✨
 - **목표**: 브라우저 기반의 E2E 테스트(`tester.md`), 디자인 검수(`designer.md`), 상태 유지 자동화를 가능하게 하는 도구.
