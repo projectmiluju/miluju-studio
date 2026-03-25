@@ -1,27 +1,52 @@
 /** 지원하는 에이전트 타입 */
-export type AgentTarget = "claude-code" | "cursor" | "gemini";
+export type AgentTarget =
+  | "claude-code"
+  | "cursor"
+  | "gemini"
+  | "codex"
+  | "copilot"
+  | "antigravity"
+  | "kiro"
+  | "windsurf";
 
 export const AGENT_TARGETS: AgentTarget[] = [
   "claude-code",
   "cursor",
   "gemini",
+  "codex",
+  "copilot",
+  "antigravity",
+  "kiro",
+  "windsurf",
 ];
+
+/** 에이전트 표시 이름 */
+const AGENT_LABELS: Record<AgentTarget, string> = {
+  "claude-code": "Claude Code",
+  cursor: "Cursor",
+  gemini: "Gemini CLI",
+  codex: "OpenAI Codex",
+  copilot: "GitHub Copilot",
+  antigravity: "Antigravity",
+  kiro: "AWS Kiro",
+  windsurf: "Windsurf",
+};
 
 /** 스킬 파이프라인의 역할 목록 */
 const ROLES = [
-  "planner",
-  "designer",
-  "fullstack",
-  "tester",
-  "releaser",
-  "devops",
-  "scribe",
+  "spec",
+  "ui",
+  "build",
+  "qa",
+  "ship",
+  "ops",
+  "docs",
 ] as const;
 
 /**
  * 에이전트별 역할 참조 변환 규칙
  *
- * 원본 스킬에서는 **planner**, **designer** 등 볼드 역할명을 사용합니다.
+ * 원본 스킬에서는 **spec**, **ui** 등 볼드 역할명을 사용합니다.
  * 각 에이전트의 호출 방식에 맞게 변환합니다.
  */
 function getRoleReplacer(
@@ -29,11 +54,27 @@ function getRoleReplacer(
 ): (role: string) => string {
   switch (target) {
     case "claude-code":
+      // 슬래시 명령어: /spec, /ui
       return (role) => `\`/${role}\``;
+    case "codex":
+      // $ 스킬 호출: $spec, $ui
+      return (role) => `\`$${role}\``;
     case "cursor":
+    case "windsurf":
+      // @ 멘션: @spec, @ui
       return (role) => `\`@${role}\``;
     case "gemini":
+      // 파일 참조: skills/spec.md
       return (role) => `**${role}** (프롬프트 파일: \`skills/${role}.md\`)`;
+    case "copilot":
+      // 자동 주입 — 볼드 참조 유지
+      return (role) => `**${role}**`;
+    case "antigravity":
+      // 시맨틱 매칭 — 볼드 참조 + 스킬 디렉토리 안내
+      return (role) => `**${role}** (스킬: \`.agent/skills/${role}/\`)`;
+    case "kiro":
+      // # 참조: #spec, #ui
+      return (role) => `\`#${role}\``;
   }
 }
 
@@ -42,49 +83,43 @@ function getRoleReplacer(
  */
 function getHeader(target: AgentTarget, skillName: string): string {
   const timestamp = new Date().toISOString().split("T")[0];
-  const agentLabel = {
-    "claude-code": "Claude Code",
-    cursor: "Cursor",
-    gemini: "Gemini CLI",
-  }[target];
 
   return [
     `<!-- 이 파일은 miluju-studio의 gen-skill-docs에 의해 자동 생성되었습니다. -->`,
-    `<!-- 대상 에이전트: ${agentLabel} | 생성일: ${timestamp} -->`,
+    `<!-- 대상 에이전트: ${AGENT_LABELS[target]} | 생성일: ${timestamp} -->`,
     `<!-- 원본을 수정하려면 skills/${skillName}.md 또는 skills/_base.md를 편집하세요. -->`,
     "",
   ].join("\n");
 }
 
-/**
- * 에이전트별 파이프라인 참조 블록을 삽입합니다.
- * _base.md의 에이전트별 호출 방식 테이블 대신, 해당 에이전트에 맞는 안내만 추가.
- */
-function getPipelineNote(target: AgentTarget): string {
-  switch (target) {
-    case "claude-code":
-      return [
-        "> **스킬 호출:** 슬래시 명령어를 사용하세요.",
-        "> `/planner` → `/designer` → `/fullstack` → `/tester` → `/releaser` → `/devops` → `/scribe`",
-        "",
-      ].join("\n");
-    case "cursor":
-      return [
-        "> **스킬 호출:** @ 멘션을 사용하세요.",
-        "> `@planner` → `@designer` → `@fullstack` → `@tester` → `@releaser` → `@devops` → `@scribe`",
-        "",
-      ].join("\n");
-    case "gemini":
-      return [
-        "> **스킬 호출:** 프롬프트 파일을 참조하세요.",
-        "> `skills/planner.md` → `skills/designer.md` → ... → `skills/scribe.md`",
-        "",
-      ].join("\n");
-  }
+/** 역할 목록을 에이전트별 호출 구문으로 변환 */
+function formatPipeline(target: AgentTarget): string {
+  const replacer = getRoleReplacer(target);
+  return ROLES.map((r) => replacer(r)).join(" → ");
+}
+
+/** 에이전트별 호출 안내 */
+function getInvocationGuide(target: AgentTarget): string {
+  const guides: Record<AgentTarget, string> = {
+    "claude-code": "슬래시 명령어를 사용하세요.",
+    cursor: "@ 멘션을 사용하세요.",
+    gemini: "프롬프트 파일을 참조하세요.",
+    codex: "$ 접두사로 스킬을 호출하세요.",
+    copilot: "자동으로 주입됩니다. 스킬 이름으로 참조하세요.",
+    antigravity: "자동으로 매칭됩니다. 의도를 설명하면 스킬이 활성화됩니다.",
+    kiro: "# 참조를 사용하세요.",
+    windsurf: "@ 멘션을 사용하세요.",
+  };
+
+  return [
+    `> **스킬 호출:** ${guides[target]}`,
+    `> ${formatPipeline(target)}`,
+    "",
+  ].join("\n");
 }
 
 /**
- * 마크다운 본문에서 볼드 역할 참조(**planner** 등)를 에이전트별 구문으로 변환합니다.
+ * 마크다운 본문에서 볼드 역할 참조(**spec** 등)를 에이전트별 구문으로 변환합니다.
  */
 function transformRoleReferences(
   content: string,
@@ -94,8 +129,6 @@ function transformRoleReferences(
   let result = content;
 
   for (const role of ROLES) {
-    // **role** 패턴 (단어 경계에서) → 에이전트별 구문
-    // 단, 코드 블록 내부는 제외하기 위해 줄 단위로 처리
     const pattern = new RegExp(`\\*\\*${role}\\*\\*`, "g");
     result = result.replace(pattern, replacer(role));
   }
@@ -110,11 +143,10 @@ function transformBaseContent(
   baseContent: string,
   target: AgentTarget
 ): string {
-  // 에이전트별 호출 방식 테이블 영역을 파이프라인 노트로 교체
   const tablePattern =
     /각 역할은 에이전트의 호출 방식에 따라 참조합니다:[\s\S]*?문서 내에서 역할을 참조할 때는.*볼드체 역할명.*을 사용합니다\./;
 
-  let result = baseContent.replace(tablePattern, getPipelineNote(target));
+  let result = baseContent.replace(tablePattern, getInvocationGuide(target));
   result = transformRoleReferences(result, target);
 
   return result;
@@ -130,7 +162,6 @@ export function transformForAgent(
 ): string {
   const header = getHeader(target, skillName);
 
-  // 부록의 _base.md 부분도 에이전트별로 변환
   const parts = mergedContent.split(
     "# 부록: miluju-studio 공통 원칙"
   );

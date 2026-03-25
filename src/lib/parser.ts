@@ -8,7 +8,7 @@ export interface SkillMeta {
 
 /** 파싱된 스킬 문서 */
 export interface ParsedSkill {
-  /** 파일명 (확장자 제외) — "planner", "designer" 등 */
+  /** 파일명 (확장자 제외) — "spec", "ui" 등 */
   name: string;
   /** frontmatter에서 추출한 메타데이터 */
   meta: SkillMeta;
