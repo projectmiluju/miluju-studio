@@ -16,6 +16,15 @@ dist/
 # Lock file (bun install로 재생성 가능)
 bun.lock
 
+# Browser session data
+.browser-data/
+
+# Eval results
+test/results/
+
+# Analytics log
+.miluju-analytics.log
+
 # OS
 .DS_Store
 Thumbs.db
