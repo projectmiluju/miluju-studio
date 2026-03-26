@@ -240,10 +240,10 @@ async function main(): Promise<void> {
     }
   });
 
+  console.error("🚀 miluju-browse MCP 서버 시작 (stdio 모드)");
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
-
-  console.error("🚀 miluju-browse MCP 서버 시작 (stdio 모드)");
 
   // 종료 시 브라우저 정리
   process.on("SIGINT", async () => {

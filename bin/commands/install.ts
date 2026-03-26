@@ -141,6 +141,7 @@ async function installMcpToml(
     "[mcp_servers.miluju-browse]",
     `command = "bun"`,
     `args = ["run", "${serverScript}"]`,
+    `startup_timeout_sec = 30`,
     "",
   ].join("\n");
 
