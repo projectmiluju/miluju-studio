@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target bun",
+    "build:browse-node": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit",
     "gen": "bun run src/gen-skill-docs.ts",
     "browse": "bun run browse/server.ts",
@@ -18,7 +19,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
-    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@modelcontextprotocol/sdk": "^1.28.0",
     "@playwright/mcp": "^0.0.68",
     "remark-parse": "^11.0.0",
     "remark-stringify": "^11.0.0",

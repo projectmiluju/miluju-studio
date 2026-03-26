@@ -5,7 +5,8 @@
  * 한글 검수에 필요한 initScript, 뷰포트, 세션 유지 등을 설정합니다.
  */
 
-import { resolve } from "node:path";
+import { dirname, basename, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 /**
  * @playwright/mcp Config 타입 (config.d.ts에서 subpath export가 안 되므로 필요한 부분만 정의)
@@ -33,7 +34,11 @@ export interface MiluBrowserConfig {
   imageResponses?: "allow" | "omit" | "auto";
 }
 
-const BROWSE_ROOT = import.meta.dirname;
+const MODULE_DIR = dirname(fileURLToPath(import.meta.url));
+const BROWSE_ROOT =
+  basename(dirname(MODULE_DIR)) === "dist"
+    ? resolve(MODULE_DIR, "..", "..", "browse")
+    : MODULE_DIR;
 
 /** miluju 기본 브라우저 설정 */
 export function createMiluConfig(overrides?: Partial<MiluBrowserConfig>): MiluBrowserConfig {

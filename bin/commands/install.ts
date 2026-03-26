@@ -7,6 +7,7 @@
 
 import { existsSync } from "node:fs";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { execSync } from "node:child_process";
 import { join, resolve } from "node:path";
 import type { AgentTarget } from "../../src/lib/transformer.js";
 
@@ -73,6 +74,31 @@ function getMiluRoot(): string {
   return resolve(import.meta.dirname, "..", "..");
 }
 
+/** bun 절대경로를 찾습니다 (에이전트 PATH에 없을 수 있으므로) */
+function findBunPath(): string {
+  try {
+    return execSync("which bun", { encoding: "utf-8" }).trim();
+  } catch {
+    return "bun"; // fallback
+  }
+}
+
+function findNodePath(): string {
+  try {
+    return execSync("which node", { encoding: "utf-8" }).trim();
+  } catch {
+    return "node";
+  }
+}
+
+function ensureBrowseNodeBundle(miluRoot: string, bunPath: string): string {
+  execSync(`${bunPath} run build:browse-node`, {
+    cwd: miluRoot,
+    stdio: "ignore",
+  });
+  return join(miluRoot, "dist", "browse", "server.js");
+}
+
 /** MCP 설정 정보 */
 interface McpConfigInfo {
   /** 프로젝트 내 설정 파일 경로 */
@@ -99,6 +125,8 @@ const MCP_CONFIG_MAP: Record<AgentTarget, McpConfigInfo> = {
 async function installMcpJson(
   fullPath: string,
   serverScript: string,
+  serverCwd: string,
+  bunPath: string,
   serversKey: "mcpServers" | "servers",
   useType: boolean
 ): Promise<void> {
@@ -110,8 +138,9 @@ async function installMcpJson(
 
   const servers = (config[serversKey] ?? {}) as Record<string, unknown>;
   const entry: Record<string, unknown> = {
-    command: "bun",
-    args: ["run", serverScript],
+    command: bunPath,
+    args: [serverScript],
+    cwd: serverCwd,
   };
   if (useType) entry.type = "stdio";
   servers["miluju-browse"] = entry;
@@ -126,7 +155,9 @@ async function installMcpJson(
  */
 async function installMcpToml(
   fullPath: string,
-  serverScript: string
+  serverScript: string,
+  serverCwd: string,
+  bunPath: string
 ): Promise<void> {
   let content = "";
   if (existsSync(fullPath)) {
@@ -139,9 +170,10 @@ async function installMcpToml(
   const tomlBlock = [
     "",
     "[mcp_servers.miluju-browse]",
-    `command = "bun"`,
-    `args = ["run", "${serverScript}"]`,
-    `startup_timeout_sec = 30`,
+    `command = "${bunPath}"`,
+    `args = ["${serverScript}"]`,
+    `cwd = "${serverCwd}"`,
+    `startup_timeout_sec = 60`,
     "",
   ].join("\n");
 
@@ -161,17 +193,21 @@ async function installMcpConfig(
 ): Promise<boolean> {
   const mcpInfo = MCP_CONFIG_MAP[agent];
   const fullPath = join(targetDir, mcpInfo.path);
-  const serverScript = join(getMiluRoot(), "browse", "server.ts");
+  const miluRoot = getMiluRoot();
+  const bunPath = findBunPath();
+  const nodePath = findNodePath();
+  const serverScript = ensureBrowseNodeBundle(miluRoot, bunPath);
+  const serverCwd = miluRoot;
 
   switch (mcpInfo.format) {
     case "json-mcpServers":
-      await installMcpJson(fullPath, serverScript, "mcpServers", false);
+      await installMcpJson(fullPath, serverScript, serverCwd, nodePath, "mcpServers", false);
       break;
     case "json-servers":
-      await installMcpJson(fullPath, serverScript, "servers", true);
+      await installMcpJson(fullPath, serverScript, serverCwd, nodePath, "servers", true);
       break;
     case "toml":
-      await installMcpToml(fullPath, serverScript);
+      await installMcpToml(fullPath, serverScript, serverCwd, nodePath);
       break;
   }
 
