@@ -68,6 +68,115 @@ const AGENT_INSTALL_MAP: Record<AgentTarget, AgentInstallConfig> = {
 
 const SKILL_NAMES = ["spec", "ui", "build", "qa", "ship", "ops", "docs"];
 
+/** miluju-studio 루트 경로 (install.ts 기준 ../../) */
+function getMiluRoot(): string {
+  return resolve(import.meta.dirname, "..", "..");
+}
+
+/** MCP 설정 정보 */
+interface McpConfigInfo {
+  /** 프로젝트 내 설정 파일 경로 */
+  path: string;
+  /** 설정 포맷 */
+  format: "json-mcpServers" | "json-servers" | "toml";
+}
+
+/** 에이전트별 MCP 설정 파일 경로 및 형식 */
+const MCP_CONFIG_MAP: Record<AgentTarget, McpConfigInfo> = {
+  "claude-code": { path: ".claude/mcp.json", format: "json-mcpServers" },
+  cursor: { path: ".cursor/mcp.json", format: "json-mcpServers" },
+  windsurf: { path: ".windsurf/mcp.json", format: "json-mcpServers" },
+  gemini: { path: ".gemini/settings.json", format: "json-mcpServers" },
+  kiro: { path: ".kiro/settings/mcp.json", format: "json-mcpServers" },
+  copilot: { path: ".vscode/mcp.json", format: "json-servers" },
+  codex: { path: ".codex/config.toml", format: "toml" },
+  antigravity: { path: ".agent/mcp.json", format: "json-mcpServers" },
+};
+
+/**
+ * JSON 형식 MCP 설정 설치 (mcpServers 또는 servers 키)
+ */
+async function installMcpJson(
+  fullPath: string,
+  serverScript: string,
+  serversKey: "mcpServers" | "servers",
+  useType: boolean
+): Promise<void> {
+  let config: Record<string, unknown> = {};
+  if (existsSync(fullPath)) {
+    const raw = await readFile(fullPath, "utf-8");
+    config = JSON.parse(raw);
+  }
+
+  const servers = (config[serversKey] ?? {}) as Record<string, unknown>;
+  const entry: Record<string, unknown> = {
+    command: "bun",
+    args: ["run", serverScript],
+  };
+  if (useType) entry.type = "stdio";
+  servers["miluju-browse"] = entry;
+  config[serversKey] = servers;
+
+  await mkdir(join(fullPath, ".."), { recursive: true });
+  await writeFile(fullPath, JSON.stringify(config, null, 2) + "\n", "utf-8");
+}
+
+/**
+ * TOML 형식 MCP 설정 설치 (Codex)
+ */
+async function installMcpToml(
+  fullPath: string,
+  serverScript: string
+): Promise<void> {
+  let content = "";
+  if (existsSync(fullPath)) {
+    content = await readFile(fullPath, "utf-8");
+  }
+
+  // 이미 miluju-browse 설정이 있으면 스킵
+  if (content.includes("[mcp_servers.miluju-browse]")) return;
+
+  const tomlBlock = [
+    "",
+    "[mcp_servers.miluju-browse]",
+    `command = "bun"`,
+    `args = ["run", "${serverScript}"]`,
+    "",
+  ].join("\n");
+
+  content += tomlBlock;
+
+  await mkdir(join(fullPath, ".."), { recursive: true });
+  await writeFile(fullPath, content, "utf-8");
+}
+
+/**
+ * MCP 설정 파일을 대상 프로젝트에 설치합니다.
+ * 기존 설정이 있으면 miluju-browse 서버만 추가합니다.
+ */
+async function installMcpConfig(
+  agent: AgentTarget,
+  targetDir: string
+): Promise<boolean> {
+  const mcpInfo = MCP_CONFIG_MAP[agent];
+  const fullPath = join(targetDir, mcpInfo.path);
+  const serverScript = join(getMiluRoot(), "browse", "server.ts");
+
+  switch (mcpInfo.format) {
+    case "json-mcpServers":
+      await installMcpJson(fullPath, serverScript, "mcpServers", false);
+      break;
+    case "json-servers":
+      await installMcpJson(fullPath, serverScript, "servers", true);
+      break;
+    case "toml":
+      await installMcpToml(fullPath, serverScript);
+      break;
+  }
+
+  return true;
+}
+
 /**
  * miluju-studio의 dist/skills/{agent}/ 경로를 찾습니다.
  * npx로 실행될 때와 로컬 실행될 때 모두 대응합니다.
@@ -171,7 +280,12 @@ export async function runInstall(options: InstallOptions): Promise<void> {
         break;
     }
 
+    const mcpInstalled = await installMcpConfig(agent, targetDir);
+
     console.log(`  ✅ ${agent}: ${count}개 스킬 → ${config.dir}/`);
+    if (mcpInstalled) {
+      console.log(`     🔌 MCP 브라우저 검수 서버 설정 추가 → ${MCP_CONFIG_MAP[agent].path}`);
+    }
     console.log(`     ${config.guide}`);
     console.log("");
   }
