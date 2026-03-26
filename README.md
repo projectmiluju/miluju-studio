@@ -20,7 +20,8 @@ AI 에이전트에게 "이렇게 일해"라고 알려주는 마크다운 스킬 
 | 명령어 | 하는 일 |
 |--------|---------|
 | `bun run gen` | 스킬 1벌 → 8개 에이전트용 자동 변환 (56파일) |
-| `bun run browse` | 브라우저 MCP 서버 (한글 렌더링/접근성/디자인토큰 검수) |
+| `bun run browse` | 브라우저 MCP 서버 개발 실행 (stdio/SSE) |
+| `bun run build:browse-node` | Codex/MCP용 Node 번들 생성 (`dist/browse/server.js`) |
 | `bun run eval` | 스킬 변경 시 LLM으로 품질 회귀 테스트 |
 | `bun run miluju doctor` | 환경 진단 |
 
@@ -40,6 +41,7 @@ git clone <repo-url> miluju-studio
 cd miluju-studio
 ./setup
 bun run gen          # dist/skills/ 에 56개 파일 생성
+bun run build:browse-node  # MCP용 Node 번들 생성
 
 # 2. 다른 프로젝트에 스킬 설치
 bun run miluju install --agent claude-code --target ~/my-project
@@ -83,7 +85,12 @@ bun run eval
 
 # 브라우저 검수 서버
 bun run browse
+
+# Codex/MCP 설치에 사용되는 Node 번들 생성
+bun run build:browse-node
 ```
+
+`miluju install`은 MCP 서버 설정을 만들 때 `dist/browse/server.js` 를 가리키도록 구성합니다. 로컬 개발 중에는 `bun run browse`를 계속 써도 되지만, 에이전트 통합용 stdio 서버는 Node 번들을 기준으로 배포됩니다.
 
 ## 스킬 7종
 
@@ -115,6 +122,8 @@ miluju-studio/
 │   ├── server.ts              ← MCP 진입점 (stdio/SSE)
 │   ├── init-scripts/          ← 페이지 주입 검수 스크립트
 │   └── tools/                 ← 한글/접근성/디자인토큰 검수
+│
+├── dist/browse/               ← MCP용 Node 실행 번들
 │
 ├── test/                      ← LLM-as-a-judge 평가
 │   ├── eval.ts                ← CLI 진입점

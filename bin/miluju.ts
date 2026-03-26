@@ -42,7 +42,7 @@ miluju-studio v${VERSION}
 
   gen                  스킬 문서 생성 (= bun run gen)
   eval                 스킬 품질 평가 (= bun run eval)
-  browse               브라우저 검수 서버 (= bun run browse)
+  browse               브라우저 검수 서버 개발 실행 (= bun run browse)
 
   help                 이 도움말 표시
   version              버전 출력

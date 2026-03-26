@@ -41,12 +41,12 @@ export async function runDoctor(targetDir: string): Promise<void> {
     results.push({ name: "Bun", status: "fail", message: "설치되지 않음 → curl -fsSL https://bun.sh/install | bash" });
   }
 
-  // 2. Node.js 확인 (선택)
+  // 2. Node.js 확인 (MCP 실행용)
   const nodeVersion = await checkCommand("node --version");
   if (nodeVersion) {
     results.push({ name: "Node.js", status: "pass", message: nodeVersion });
   } else {
-    results.push({ name: "Node.js", status: "warn", message: "설치되지 않음 (Bun 사용 시 선택사항)" });
+    results.push({ name: "Node.js", status: "fail", message: "설치되지 않음 → MCP 서버 실행과 설치 출력에 필요" });
   }
 
   // 3. Git 확인
