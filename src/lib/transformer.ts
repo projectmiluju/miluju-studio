@@ -78,11 +78,36 @@ function getRoleReplacer(
   }
 }
 
+/** 스킬별 설명 (Codex frontmatter용) */
+const SKILL_DESCRIPTIONS: Record<string, string> = {
+  spec: "프로젝트 명세(PRD) 작성",
+  ui: "화면 설계 및 디자인 시스템",
+  build: "코드 구현",
+  qa: "테스트 및 품질 검증",
+  ship: "커밋, 배포, 릴리스",
+  ops: "인프라 및 운영",
+  docs: "문서화 및 기록",
+};
+
 /**
  * 에이전트별 헤더 코멘트
  */
 function getHeader(target: AgentTarget, skillName: string): string {
   const timestamp = new Date().toISOString().split("T")[0];
+
+  // Codex는 YAML frontmatter 필수
+  if (target === "codex") {
+    const desc = SKILL_DESCRIPTIONS[skillName] ?? skillName;
+    return [
+      "---",
+      `name: ${skillName}`,
+      `description: ${desc}`,
+      `generated: ${timestamp}`,
+      `generator: miluju-studio`,
+      "---",
+      "",
+    ].join("\n");
+  }
 
   return [
     `<!-- 이 파일은 miluju-studio의 gen-skill-docs에 의해 자동 생성되었습니다. -->`,
