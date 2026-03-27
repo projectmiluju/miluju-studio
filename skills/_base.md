@@ -20,6 +20,16 @@ Claude Code, Cursor, Gemini CLI, Codex 등 어떤 에이전트에서도 동작�
 spec → ui → build → qa → ship → ops → docs
 ```
 
+**이슈 기반 워크플로우:** 기능 개발은 **spec**이 PRD를 GitHub Issue로 분해하는 것에서 시작합니다.
+**build**는 이슈를 할당받아 작업하고, **ship**이 이슈 기반 브랜치에서 커밋/PR 생성/이슈 닫기를 수행합니다.
+
+```
+spec: PRD 승인 → Issue 분해/생성
+build: Issue 확인 → 구현
+qa: 테스트 → 승인
+ship: 브랜치(feat/#12-...) → 커밋 → PR(Closes #12) → 머지
+```
+
 각 역할은 에이전트의 호출 방식에 따라 참조합니다:
 | 에이전트 | 호출 방식 |
 |---------|---------|

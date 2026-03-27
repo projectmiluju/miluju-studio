@@ -196,11 +196,24 @@ git pull origin main && npm install
 
 ### Phase 6: 실행 및 핸드오프
 
+#### 이슈 단위 커밋 + PR (일반 작업)
+
 ```bash
+git switch -c feat/#12-social-login
+# ... 구현 진행 ...
 git add [파일 목록]
-git commit -m "feat: ..."
+git commit -m "feat: 구글 OAuth 소셜 로그인 기능 추가"
+git push -u origin feat/#12-social-login
+gh pr create --title "feat: 구글 OAuth 소셜 로그인 기능 추가 (#12)" --body "Closes #12 ..."
+# PR 머지 후
+git switch main && git pull
+git branch -d feat/#12-social-login
+```
+
+#### 릴리즈 태깅 (버전 릴리즈 시)
+
+```bash
 git tag -a v1.3.0 -m "release: v1.3.0 릴리즈"
-git push origin main
 git push origin --tags
 ```
 
@@ -211,19 +224,140 @@ git push origin --tags
 
 ---
 
-## 🌿 브랜치 전략 (1인 개발자 경량 버전)
+## 🌿 이슈 기반 브랜치 전략
+
+모든 작업은 GitHub Issue에서 시작하고, 브랜치와 PR을 통해 `main`에 합류합니다.
 
 ```
-main                 ← 항상 배포 가능한 코드
-  └── feature/{name}  ← 새 기능 개발
-  └── fix/{name}      ← 버그 수정
+main                                  ← 항상 배포 가능한 코드
+  └── feat/#12-social-login            ← Issue #12 기능 개발
+  └── fix/#18-payment-rounding         ← Issue #18 버그 수정
+  └── refactor/#25-auth-module-split   ← Issue #25 리팩터링
 ```
+
+### 브랜치 네이밍 규칙
+
+```
+{type}/#{이슈번호}-{영문-소문자-하이픈-설명}
+```
+
+| Type | 용도 | 예시 |
+|------|------|------|
+| `feat` | 새 기능 | `feat/#12-social-login` |
+| `fix` | 버그 수정 | `fix/#18-payment-rounding` |
+| `refactor` | 구조 개선 | `refactor/#25-auth-module-split` |
+| `docs` | 문서 | `docs/#30-api-docs` |
+| `test` | 테스트 | `test/#33-login-e2e` |
+| `chore` | 기타 | `chore/#40-eslint-config` |
 
 | 규칙 | 설명 |
 |------|------|
-| `main`에 직접 커밋 금지 | 브랜치에서 작업 후 머지 |
-| 브랜치명: 영문 소문자 + 하이픈 | `feature/social-login` |
-| 머지 후 브랜치 삭제 | `git branch -d feature/social-login` |
+| `main`에 직접 커밋 금지 | 반드시 브랜치에서 작업 후 PR로 머지 |
+| 이슈 번호 필수 | 이슈 없는 브랜치 생성 금지 |
+| 머지 후 브랜치 삭제 | `git branch -d feat/#12-social-login` |
+
+### 브랜치 생성 ~ PR 머지 플로우
+
+```
+1. Issue 확인     →  gh issue view #12
+2. 브랜치 생성    →  git switch -c feat/#12-social-login
+3. 구현 + 커밋    →  (build/qa 진행)
+4. 푸시           →  git push -u origin feat/#12-social-login
+5. PR 생성       →  gh pr create (PR 템플릿 사용)
+6. 리뷰/머지     →  gh pr merge (이슈 자동 닫기)
+7. 브랜치 정리    →  git switch main && git pull && git branch -d feat/#12-social-login
+```
+
+---
+
+## 📝 PR 템플릿 및 생성
+
+### PR 제목 규칙
+
+커밋 메시지와 동일한 포맷을 따릅니다. **한글 필수.**
+
+```
+{type}: {한글 설명} (#이슈번호)
+```
+
+```
+✅ feat: 구글 OAuth 소셜 로그인 기능 추가 (#12)
+✅ fix: 결제 금액 소수점 반올림 오류 수정 (#18)
+❌ feat: Add social login (#12)  ← 영어 금지
+❌ 소셜 로그인 추가              ← type 누락
+```
+
+### PR 템플릿
+
+```markdown
+## 📌 관련 이슈
+
+Closes #{이슈번호}
+
+## 📝 변경 사항
+
+- {구체적 변경 1}
+- {구체적 변경 2}
+
+## ✅ 체크리스트
+
+- [ ] 빌드 통과 (`npm run build`)
+- [ ] 린트 통과 (`npm run lint`)
+- [ ] 타입체크 통과 (`npm run typecheck`)
+- [ ] 테스트 통과 (`npm run test`)
+- [ ] 이슈의 완료 조건(DoD) 모두 충족
+
+## 📸 스크린샷 (UI 변경 시)
+
+{변경 전/후 비교 — 해당 없으면 삭제}
+
+## ⚠️ 주의사항
+
+{리뷰어가 알아야 할 것 — 해당 없으면 삭제}
+```
+
+### PR 생성 명령
+
+```bash
+git push -u origin feat/#12-social-login
+
+gh pr create \
+  --title "feat: 구글 OAuth 소셜 로그인 기능 추가 (#12)" \
+  --body "$(cat <<'EOF'
+## 📌 관련 이슈
+
+Closes #12
+
+## 📝 변경 사항
+
+- 구글 OAuth 2.0 콜백 API 구현
+- 토큰 교환 및 사용자 생성 로직 추가
+
+## ✅ 체크리스트
+
+- [x] 빌드 통과
+- [x] 린트 통과
+- [x] 타입체크 통과
+- [x] 테스트 통과
+- [x] 이슈의 완료 조건(DoD) 모두 충족
+EOF
+)"
+```
+
+### 이슈 자동 닫기
+
+PR 본문에 `Closes #이슈번호`를 포함하면 PR 머지 시 이슈가 자동으로 닫힙니다.
+
+| 키워드 | 예시 |
+|--------|------|
+| `Closes` | `Closes #12` |
+| `Fixes` | `Fixes #18` |
+
+**여러 이슈를 닫을 경우:**
+```
+Closes #12
+Closes #13
+```
 
 ---
 
