@@ -40,7 +40,7 @@ const AGENT_INSTALL_MAP: Record<AgentTarget, AgentInstallConfig> = {
     guide: "Gemini CLI에서 skills/spec.md 등으로 참조하세요.",
   },
   codex: {
-    dir: ".codex/skills",
+    dir: ".agents/skills",
     format: "directory",
     guide: "Codex에서 $spec, $ui, $build 등으로 호출하세요.",
   },
