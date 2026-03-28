@@ -23,7 +23,8 @@ jobs:
           bun-version: latest
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        # bun.lock 은 .gitignore 되어 있어 --frozen-lockfile 은 사용하지 않습니다.
+        run: bun install
 
       - name: Type check
         run: bun run typecheck
@@ -39,13 +40,16 @@ jobs:
         id: changelog
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          # CHANGELOG.md에서 해당 버전 섹션 추출
-          NOTES=$(awk "/^## \[?${VERSION}\]?/,/^## \[?[0-9]/" CHANGELOG.md 2>/dev/null \
-            | head -n -1 \
-            | tail -n +2 \
-            | sed '/^$/d' \
-            || echo "")
-          if [ -z "$NOTES" ]; then
+          if [ -f CHANGELOG.md ]; then
+            NOTES=$(awk -v ver="$VERSION" '
+              $0 ~ "^## \\[" ver "\\]" { flag=1; next }
+              flag && /^## \[/ { exit }
+              flag { print }
+            ' CHANGELOG.md)
+          else
+            NOTES=""
+          fi
+          if [ -z "$(echo "$NOTES" | tr -d '[:space:]')" ]; then
             NOTES="miluju-studio v${VERSION} 릴리즈"
           fi
           {

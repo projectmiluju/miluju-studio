@@ -20,6 +20,7 @@
     "dist/browse/",
     "skills/",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
