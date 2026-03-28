@@ -23,7 +23,10 @@ AI 에이전트에게 "이렇게 일해"라고 알려주는 마크다운 스킬 
 | `bun run browse` | 브라우저 MCP 서버 개발 실행 (stdio/SSE) |
 | `bun run build:browse-node` | Codex/MCP용 Node 번들 생성 (`dist/browse/server.js`) |
 | `bun run eval` | 스킬 변경 시 LLM으로 품질 회귀 테스트 |
-| `bun run miluju doctor` | 환경 진단 |
+| `miluju install` | 스킬 + MCP 설정 + GitHub 템플릿 원클릭 설치 |
+| `miluju update-check` | 스킬 버전 및 의존성 업데이트 확인 |
+| `miluju update` | 감지된 스킬 자동 업데이트 |
+| `miluju doctor` | 환경 진단 |
 
 ## 왜 만들었나?
 
@@ -43,7 +46,7 @@ cd miluju-studio
 bun run gen          # dist/skills/ 에 56개 파일 생성
 bun run build:browse-node  # MCP용 Node 번들 생성
 
-# 2. 다른 프로젝트에 스킬 설치
+# 2. 다른 프로젝트에 스킬 설치 (스킬 + MCP 설정 + GitHub 템플릿 한 번에)
 bun run miluju install --agent claude-code --target ~/my-project
 
 # Cursor + Windsurf 동시 설치
@@ -51,6 +54,35 @@ bun run miluju install --agent cursor --agent windsurf --target ~/my-project
 
 # 모든 에이전트용 스킬 한 번에 설치
 bun run miluju install --target ~/my-project
+
+# GitHub 템플릿 없이 스킬만 설치
+bun run miluju install --no-issue-templates --target ~/my-project
+```
+
+설치하면 다음 구조가 자동으로 생성됩니다:
+
+```
+.github/
+├── ISSUE_TEMPLATE/
+│   ├── bug_report.md        ← 버그 리포트
+│   ├── feature_request.md   ← 기능 요청
+│   ├── task.md              ← 개발 태스크
+│   ├── question.md          ← 질문
+│   └── config.yml
+└── pull_request_template.md ← Closes # 이슈 자동 닫기 포함
+```
+
+### 스킬 업데이트
+
+```bash
+# 업데이트 가능한 스킬 확인
+bun run miluju update-check --target ~/my-project
+
+# 자동 업데이트
+bun run miluju update --target ~/my-project
+
+# 특정 스킬만 업데이트
+bun run miluju update --skill spec --skill build --target ~/my-project
 ```
 
 **지원 에이전트 (8종):**
@@ -104,7 +136,7 @@ bun run build:browse-node
 | **ops** | 운영 | 인프라 3-tier 선택, CI/CD, UTF-8 로그 검증 |
 | **docs** | 기록 | Dev Log, ADR, README 동기화, STATUS.md |
 
-모든 스킬은 `_base.md`의 공통 원칙(1인 개발자 5원칙, 안티-아첨, 한글 프로젝트 지침)을 공유합니다.
+모든 스킬은 `_base.md`의 공통 원칙(1인 개발자 5원칙, 안티-아첨, 한글 프로젝트 지침, **main 브랜치 보호 규칙**)을 공유합니다. `_base.md`를 수정하면 `bun run gen` 한 번으로 56개 파일 전체에 반영됩니다.
 
 ## 프로젝트 구조
 
@@ -132,7 +164,7 @@ miluju-studio/
 │
 ├── bin/                       ← CLI 유틸리티
 │   ├── miluju.ts              ← 서브커맨드 라우터
-│   └── commands/              ← install, doctor, update-check
+│   └── commands/              ← install, doctor, update-check, update
 │
 ├── setup                      ← 원클릭 설치
 ├── package.json

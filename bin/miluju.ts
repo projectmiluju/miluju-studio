@@ -14,6 +14,7 @@ import { resolve } from "node:path";
 import { runInstall, getSupportedAgents } from "./commands/install.js";
 import { runDoctor } from "./commands/doctor.js";
 import { runUpdateCheck } from "./commands/update-check.js";
+import { runUpdate } from "./commands/update.js";
 import { setAnalyticsEnabled, trackEvent } from "./lib/analytics.js";
 import { AGENT_TARGETS, type AgentTarget } from "../src/lib/transformer.js";
 
@@ -28,15 +29,23 @@ miluju-studio v${VERSION}
   miluju <command> [options]
 
 명령어:
-  install              프로젝트에 스킬 파일 설치
-    --agent <type>     에이전트 지정 [반복 가능]
-                       지원: ${getSupportedAgents()}
-                       미지정 시 전체 에이전트에 설치
-    --target <path>    대상 프로젝트 경로 (기본: 현재 디렉토리)
+  install                    프로젝트에 스킬 파일 + Issue 템플릿 설치
+    --agent <type>           에이전트 지정 [반복 가능]
+                             지원: ${getSupportedAgents()}
+                             미지정 시 전체 에이전트에 설치
+    --target <path>          대상 프로젝트 경로 (기본: 현재 디렉토리)
+    --no-issue-templates     GitHub Issue 템플릿 설치 건너뜀
+
+  update-check               의존성 및 스킬 버전 업데이트 확인
+    --target <path>          대상 프로젝트 경로 (기본: 현재 디렉토리)
+
+  update                     설치된 스킬을 최신 버전으로 업데이트
+    --target <path>          대상 프로젝트 경로 (기본: 현재 디렉토리)
+    --skill <name>           특정 스킬만 업데이트 [반복 가능]
+                             지원: spec, ui, build, qa, ship, ops, docs
+    --force                  버전이 같아도 강제 재설치
 
   doctor               환경 진단 (Bun, Node, Git, Playwright 등)
-
-  update-check         의존성 최신 버전 확인
 
   analytics on|off     텔레메트리 설정
 
@@ -48,7 +57,7 @@ miluju-studio v${VERSION}
   version              버전 출력
 
 사용 예시:
-  # 다른 프로젝트에 Claude Code 스킬 설치
+  # 다른 프로젝트에 Claude Code 스킬 설치 (Issue 템플릿 포함)
   bun run miluju install --agent claude-code --target ~/my-project
 
   # 현재 디렉토리에 Cursor + Windsurf 동시 설치
@@ -56,6 +65,21 @@ miluju-studio v${VERSION}
 
   # 모든 에이전트용 스킬 한 번에 설치
   bun run miluju install --target ~/my-project
+
+  # Issue 템플릿 없이 스킬만 설치
+  bun run miluju install --no-issue-templates
+
+  # 스킬 업데이트 확인
+  bun run miluju update-check --target ~/my-project
+
+  # 스킬 전체 자동 업데이트
+  bun run miluju update --target ~/my-project
+
+  # 특정 스킬만 업데이트
+  bun run miluju update --skill spec --skill build
+
+  # 강제 재설치
+  bun run miluju update --force
 `);
 }
 
@@ -81,6 +105,7 @@ async function main(): Promise<void> {
     case "install": {
       const agents: AgentTarget[] = [];
       let targetDir = projectDir;
+      let issueTemplates = true;
 
       for (let i = 1; i < args.length; i++) {
         if (args[i] === "--agent" && args[i + 1]) {
@@ -94,6 +119,8 @@ async function main(): Promise<void> {
           }
         } else if (args[i] === "--target" && args[i + 1]) {
           targetDir = resolve(args[++i]);
+        } else if (args[i] === "--no-issue-templates") {
+          issueTemplates = false;
         }
       }
 
@@ -102,7 +129,7 @@ async function main(): Promise<void> {
         agents.push(...AGENT_TARGETS);
       }
 
-      await runInstall({ targetDir, agents });
+      await runInstall({ targetDir, agents, issueTemplates });
       break;
     }
 
@@ -110,9 +137,39 @@ async function main(): Promise<void> {
       await runDoctor(projectDir);
       break;
 
-    case "update-check":
-      await runUpdateCheck(projectDir);
+    case "update-check": {
+      let targetDir = projectDir;
+      for (let i = 1; i < args.length; i++) {
+        if (args[i] === "--target" && args[i + 1]) {
+          targetDir = resolve(args[++i]);
+        }
+      }
+      await runUpdateCheck(targetDir);
       break;
+    }
+
+    case "update": {
+      const skills: string[] = [];
+      let targetDir = projectDir;
+      let force = false;
+
+      for (let i = 1; i < args.length; i++) {
+        if (args[i] === "--target" && args[i + 1]) {
+          targetDir = resolve(args[++i]);
+        } else if (args[i] === "--skill" && args[i + 1]) {
+          skills.push(args[++i]);
+        } else if (args[i] === "--force") {
+          force = true;
+        }
+      }
+
+      await runUpdate({
+        targetDir,
+        skills: skills.length > 0 ? skills : undefined,
+        force,
+      });
+      break;
+    }
 
     case "analytics": {
       const toggle = args[1];

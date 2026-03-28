@@ -10,6 +10,65 @@ import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { execSync } from "node:child_process";
 import { join, resolve } from "node:path";
 import type { AgentTarget } from "../../src/lib/transformer.js";
+import {
+  fetchLatestRelease,
+  fetchSkillContent,
+  fetchIssueTemplate,
+  extractVersionFromContent,
+} from "../lib/registry.js";
+
+/** .milurc.json 스킬 설치 레코드 */
+interface SkillInstallRecord {
+  /** 설치된 스킬 버전 (스킬명 → 버전) */
+  skillVersions: Record<string, string>;
+  /** 설치된 에이전트 목록 */
+  agents: AgentTarget[];
+  /** 마지막 설치 시각 (ISO 8601) */
+  installedAt: string;
+  /** miluju-studio 버전 */
+  miluVersion: string;
+}
+
+const MILURC_PATH = ".milurc.json";
+
+/** 대상 프로젝트의 .milurc.json을 읽습니다 */
+async function loadMilurc(targetDir: string): Promise<Record<string, unknown>> {
+  const path = join(targetDir, MILURC_PATH);
+  if (!existsSync(path)) return {};
+  try {
+    return JSON.parse(await readFile(path, "utf-8"));
+  } catch {
+    return {};
+  }
+}
+
+/** 설치 레코드를 .milurc.json에 저장합니다 */
+async function saveInstallRecord(
+  targetDir: string,
+  agents: AgentTarget[],
+  skillVersions: Record<string, string>
+): Promise<void> {
+  const miluRoot = resolve(import.meta.dirname, "..", "..");
+  let miluVersion = "unknown";
+  try {
+    const pkg = JSON.parse(
+      await readFile(join(miluRoot, "package.json"), "utf-8")
+    );
+    miluVersion = pkg.version;
+  } catch { /* ignore */ }
+
+  const milurc = await loadMilurc(targetDir);
+  const record: SkillInstallRecord = {
+    skillVersions,
+    agents,
+    installedAt: new Date().toISOString(),
+    miluVersion,
+  };
+  milurc.skills = record;
+
+  const path = join(targetDir, MILURC_PATH);
+  await writeFile(path, JSON.stringify(milurc, null, 2) + "\n", "utf-8");
+}
 
 /** 에이전트별 설치 설정 */
 interface AgentInstallConfig {
@@ -215,73 +274,134 @@ async function installMcpConfig(
 }
 
 /**
- * miluju-studio의 dist/skills/{agent}/ 경로를 찾습니다.
- * npx로 실행될 때와 로컬 실행될 때 모두 대응합니다.
+ * 로컬 dist 디렉토리가 있으면 경로를 반환하고, 없으면 null을 반환합니다.
+ * (npx 실행 환경에서는 dist가 없음)
  */
-function findDistDir(agent: AgentTarget): string {
-  // bin/commands/install.ts → 프로젝트 루트는 ../../
+function findLocalDistDir(agent: AgentTarget): string | null {
   const miluRoot = resolve(import.meta.dirname, "..", "..");
   const distDir = join(miluRoot, "dist", "skills", agent);
-
-  if (!existsSync(distDir)) {
-    throw new Error(
-      `dist/skills/${agent}/ 가 없습니다. 먼저 'bun run gen'을 실행하세요.`
-    );
-  }
-
-  return distDir;
+  return existsSync(distDir) ? distDir : null;
 }
 
 /**
- * flat 형식: 파일을 직접 복사
- * dist/skills/claude-code/spec.md → .claude/commands/spec.md
+ * 스킬 콘텐츠를 가져옵니다.
+ * 로컬 dist 우선, 없으면 GitHub Raw에서 fetch합니다.
+ */
+async function resolveSkillContent(
+  agent: AgentTarget,
+  skill: string,
+  tag: string
+): Promise<string | null> {
+  const localDistDir = findLocalDistDir(agent);
+  if (localDistDir) {
+    const src = join(localDistDir, `${skill}.md`);
+    if (existsSync(src)) return await readFile(src, "utf-8");
+  }
+  return await fetchSkillContent(tag, agent, skill);
+}
+
+/**
+ * flat 형식으로 스킬을 설치합니다.
  */
 async function installFlat(
-  distDir: string,
+  agent: AgentTarget,
+  tag: string,
   targetDir: string,
   extension?: string
-): Promise<number> {
+): Promise<{ count: number; versions: Record<string, string> }> {
   await mkdir(targetDir, { recursive: true });
   let count = 0;
+  const versions: Record<string, string> = {};
 
   for (const skill of SKILL_NAMES) {
-    const src = join(distDir, `${skill}.md`);
-    if (!existsSync(src)) continue;
+    const content = await resolveSkillContent(agent, skill, tag);
+    if (!content) continue;
 
-    const content = await readFile(src, "utf-8");
     const filename = extension ? `${skill}${extension}` : `${skill}.md`;
-    const dest = join(targetDir, filename);
-
-    await writeFile(dest, content, "utf-8");
+    await writeFile(join(targetDir, filename), content, "utf-8");
+    versions[skill] = extractVersionFromContent(content);
     count++;
   }
 
-  return count;
+  return { count, versions };
 }
 
 /**
- * directory 형식: 각 스킬을 디렉토리로 설치
- * dist/skills/codex/spec.md → .codex/skills/spec/SKILL.md
- * dist/skills/antigravity/spec.md → .agent/skills/spec/SKILL.md
+ * directory 형식으로 스킬을 설치합니다.
  */
 async function installDirectory(
-  distDir: string,
+  agent: AgentTarget,
+  tag: string,
   targetDir: string
-): Promise<number> {
+): Promise<{ count: number; versions: Record<string, string> }> {
   let count = 0;
+  const versions: Record<string, string> = {};
 
   for (const skill of SKILL_NAMES) {
-    const src = join(distDir, `${skill}.md`);
-    if (!existsSync(src)) continue;
+    const content = await resolveSkillContent(agent, skill, tag);
+    if (!content) continue;
 
     const skillDir = join(targetDir, skill);
     await mkdir(skillDir, { recursive: true });
+    await writeFile(join(skillDir, "SKILL.md"), content, "utf-8");
+    versions[skill] = extractVersionFromContent(content);
+    count++;
+  }
 
-    const content = await readFile(src, "utf-8");
-    const dest = join(skillDir, "SKILL.md");
+  return { count, versions };
+}
 
+/** Issue 템플릿 파일 목록 */
+const ISSUE_TEMPLATES = [
+  "bug_report.md",
+  "feature_request.md",
+  "task.md",
+  "question.md",
+  "config.yml",
+] as const;
+
+/**
+ * Issue/PR 템플릿 콘텐츠를 가져옵니다.
+ * 로컬 소스 우선, 없으면 GitHub Raw에서 fetch합니다.
+ */
+async function resolveTemplateContent(
+  filename: string,
+  tag: string
+): Promise<string | null> {
+  const localSrcDir = resolve(import.meta.dirname, "..", "..", "src", "issue-templates");
+  if (existsSync(localSrcDir)) {
+    const src = join(localSrcDir, filename);
+    if (existsSync(src)) return await readFile(src, "utf-8");
+  }
+  return await fetchIssueTemplate(tag, filename);
+}
+
+/**
+ * GitHub Issue/PR 템플릿을 대상 프로젝트에 설치합니다.
+ * 이미 존재하는 파일은 건너뜁니다.
+ */
+async function installIssueTemplates(targetDir: string, tag: string): Promise<number> {
+  const issueTemplateDir = join(targetDir, ".github", "ISSUE_TEMPLATE");
+  await mkdir(issueTemplateDir, { recursive: true });
+
+  let count = 0;
+
+  for (const name of ISSUE_TEMPLATES) {
+    const dest = join(issueTemplateDir, name);
+    if (existsSync(dest)) continue;
+    const content = await resolveTemplateContent(name, tag);
+    if (!content) continue;
     await writeFile(dest, content, "utf-8");
     count++;
+  }
+
+  const prDest = join(targetDir, ".github", "pull_request_template.md");
+  if (!existsSync(prDest)) {
+    const content = await resolveTemplateContent("pull_request_template.md", tag);
+    if (content) {
+      await writeFile(prDest, content, "utf-8");
+      count++;
+    }
   }
 
   return count;
@@ -290,42 +410,93 @@ async function installDirectory(
 export interface InstallOptions {
   targetDir: string;
   agents: AgentTarget[];
+  /** Issue 템플릿 설치 여부 (기본: true) */
+  issueTemplates?: boolean;
 }
 
 export async function runInstall(options: InstallOptions): Promise<void> {
-  const { targetDir, agents } = options;
+  const { targetDir, agents, issueTemplates = true } = options;
 
   console.log("📦 miluju-studio 스킬 설치를 시작합니다.");
   console.log(`   대상 프로젝트: ${targetDir}`);
   console.log(`   에이전트: ${agents.join(", ")}`);
+
+  // 릴리즈 태그 결정: 로컬 dist가 있으면 로컬 우선, 없으면 GitHub 최신 릴리즈
+  const hasLocalDist = !!findLocalDistDir(agents[0]);
+  let tag = "main";
+  let releaseVersion = "local";
+
+  if (!hasLocalDist) {
+    process.stdout.write("   버전 확인 중...");
+    const release = await fetchLatestRelease();
+    if (!release) {
+      console.error("\n❌ GitHub에서 최신 릴리즈를 가져올 수 없습니다.");
+      console.error("   네트워크를 확인하거나, miluju-studio를 직접 clone해서 실행해주세요.");
+      process.exit(1);
+    }
+    tag = release.tag;
+    releaseVersion = release.version;
+    console.log(` v${releaseVersion}`);
+  } else {
+    console.log("   (로컬 빌드 사용)");
+  }
   console.log("");
+
+  const allSkillVersions: Record<string, string> = {};
 
   for (const agent of agents) {
     const config = AGENT_INSTALL_MAP[agent];
-    const distDir = findDistDir(agent);
     const installDir = join(targetDir, config.dir);
 
     let count: number;
+    let versions: Record<string, string>;
 
     switch (config.format) {
       case "flat":
-      case "instructions":
-        count = await installFlat(distDir, installDir, config.extension);
+      case "instructions": {
+        const result = await installFlat(agent, tag, installDir, config.extension);
+        count = result.count;
+        versions = result.versions;
         break;
-      case "directory":
-        count = await installDirectory(distDir, installDir);
+      }
+      case "directory": {
+        const result = await installDirectory(agent, tag, installDir);
+        count = result.count;
+        versions = result.versions;
         break;
+      }
+    }
+
+    // 첫 에이전트 버전을 기준으로 레코드 저장 (에이전트별 버전은 동일)
+    if (Object.keys(allSkillVersions).length === 0) {
+      Object.assign(allSkillVersions, versions!);
     }
 
     const mcpInstalled = await installMcpConfig(agent, targetDir);
 
-    console.log(`  ✅ ${agent}: ${count}개 스킬 → ${config.dir}/`);
+    console.log(`  ✅ ${agent}: ${count!}개 스킬 → ${config.dir}/`);
     if (mcpInstalled) {
       console.log(`     🔌 MCP 브라우저 검수 서버 설정 추가 → ${MCP_CONFIG_MAP[agent].path}`);
     }
     console.log(`     ${config.guide}`);
     console.log("");
   }
+
+  // Issue / PR 템플릿 설치
+  if (issueTemplates) {
+    const templateCount = await installIssueTemplates(targetDir, tag);
+    if (templateCount > 0) {
+      console.log(`  📋 GitHub Issue / PR 템플릿 ${templateCount}개`);
+      console.log(`     Issue → .github/ISSUE_TEMPLATE/`);
+      console.log(`     PR   → .github/pull_request_template.md  (Closes # 이슈 자동 닫기 포함)`);
+      console.log("");
+    }
+  }
+
+  // 설치 레코드 저장
+  await saveInstallRecord(targetDir, agents, allSkillVersions);
+  console.log(`  💾 설치 레코드 저장 → .milurc.json`);
+  console.log("");
 
   console.log("📦 설치 완료!");
   console.log("");

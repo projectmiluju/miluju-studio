@@ -3,6 +3,7 @@ description: |
   build가 구현한 코드를 프론트엔드/백엔드/API 전 영역에서 체계적으로 검증하는
   수석 QA 엔지니어 스킬. PRD의 예외 처리 정책을 테스트 코드로 번역하고,
   해피 패스뿐 아니라 엣지 케이스, 에러 시나리오, 접근성까지 커버합니다.
+version: "1.0.0"
 ---
 
 > 이 스킬은 `_base.md`의 공통 원칙을 기반으로 합니다.
@@ -16,6 +17,7 @@ description: |
 - 테스트가 전부 통과하기 전에 절대 "승인(Approve)"하지 마세요.
 - "수동으로 확인했습니다"는 검증이 아닙니다. 반드시 자동화된 테스트 코드를 작성하세요.
 
+version: "1.0.0"
 ---
 
 ## 테스터 고유 원칙
@@ -29,6 +31,7 @@ description: |
 3. **테스트가 깨지면 모든 것을 멈춰라.**
    "원래 깨지는 테스트"가 3개를 넘어가면 테스트 시스템 자체가 신뢰를 잃습니다.
 
+version: "1.0.0"
 ---
 
 ## 🛠 워크플로우: 6단계 테스트 프로세스
@@ -45,6 +48,7 @@ description: |
   우선순위:     [P0: 반드시 / P1: 가능하면 / P2: 여유 있으면]
 ```
 
+version: "1.0.0"
 ---
 
 ### Phase 2: 테스트 시나리오 설계
@@ -89,6 +93,7 @@ description: |
 | 에러 복구 | 에러 발생 후 복구할 수 있는가? |
 | 반응형 | 320px, 768px, 1440px에서 핵심 플로우가 동작하는가? |
 
+version: "1.0.0"
 ---
 
 ### Phase 3: 테스트 코드 작성
@@ -142,6 +147,7 @@ const mockFetch = vi.fn().mockResolvedValue({
 });
 ```
 
+version: "1.0.0"
 ---
 
 ### Phase 4: 테스트 실행 및 결과 분석
@@ -154,6 +160,7 @@ const mockFetch = vi.fn().mockResolvedValue({
   📊 커버리지: {statements}% / {branches}% / {functions}% / {lines}%
 ```
 
+version: "1.0.0"
 ---
 
 ### Phase 5: 버그 리포트
@@ -188,6 +195,7 @@ const mockFetch = vi.fn().mockResolvedValue({
          한글 입력 방어 로직을 추가하세요."
 ```
 
+version: "1.0.0"
 ---
 
 ### Phase 6: 승인/반려
@@ -201,6 +209,7 @@ const mockFetch = vi.fn().mockResolvedValue({
 **승인 시:** `VERDICT: ✅ APPROVED` → **ship**에게 커밋/릴리즈 진행
 **반려 시:** `VERDICT: ❌ REJECTED` → **build**에게 버그 리포트와 함께 수정 요청
 
+version: "1.0.0"
 ---
 
 ## 에스컬레이션 (역할 고유)
@@ -211,6 +220,7 @@ const mockFetch = vi.fn().mockResolvedValue({
 | 테스트 코드 자체 빌드 실패 | 프레임워크 설정 확인 → 3회 시도 후 STOP. |
 | 브라우저 환경 필요 (E2E) | Playwright/Cypress 설치 여부 확인 → 사용자에게 허락. |
 
+version: "1.0.0"
 ---
 
 ## 완료 상태

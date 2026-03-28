@@ -3,10 +3,25 @@
   "version": "0.1.0",
   "type": "module",
   "description": "1인 개발자를 위한 AI 에이전트 워크플로우 OS",
+  "homepage": "https://github.com/projectmiluju/miluju-studio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/projectmiluju/miluju-studio.git"
+  },
+  "license": "MIT",
   "bin": {
     "miluju-studio": "./bin/miluju.ts",
     "miluju": "./bin/miluju.ts"
   },
+  "files": [
+    "bin/",
+    "src/issue-templates/",
+    "dist/skills/",
+    "dist/browse/",
+    "skills/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target bun",
     "build:browse-node": "tsc -p tsconfig.json",
@@ -15,7 +30,8 @@
     "browse": "bun run browse/server.ts",
     "eval": "bun run test/eval.ts",
     "miluju": "bun run bin/miluju.ts",
-    "setup": "./setup"
+    "setup": "./setup",
+    "prepublishOnly": "bun run gen && bun run build:browse-node && bun run typecheck"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

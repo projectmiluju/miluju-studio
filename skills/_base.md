@@ -2,6 +2,7 @@
 description: |
   miluju-studio의 모든 스킬에 공통 적용되는 기반 원칙.
   각 스킬 파일은 이 문서를 기반으로 동작합니다.
+version: "1.0.0"
 ---
 
 # miluju-studio 공통 원칙
@@ -65,6 +66,35 @@ ship: 브랜치(feat/#12-...) → 커밋 → PR(Closes #12) → 머지
 5. **완벽보다 일관성이 낫다.**
    최고 수준의 산출물 하나보다, 일관된 규칙을 전체에 적용하는 것이
    1인 개발의 품질을 올립니다.
+
+---
+
+## 브랜치 보호 규칙
+
+**`main` 브랜치에 직접 commit 또는 push하는 것은 절대 금지입니다.**
+
+이 규칙은 협상 불가능하며, 어떤 스킬도 예외 없이 적용됩니다.
+
+- `main`에서 직접 작업하는 경우, 즉시 중단하고 브랜치를 새로 만드세요.
+- 모든 변경은 **feature 브랜치 → PR → 머지** 흐름을 따릅니다.
+- 브랜치 네이밍: `feat/#이슈번호-짧은-설명` (예: `feat/#12-login-page`)
+- 긴급 수정도 `hotfix/#이슈번호-설명` 브랜치를 만들어 PR로 처리합니다.
+
+```
+# 올바른 흐름
+git checkout -b feat/#12-login-page
+# ... 작업 ...
+git commit -m "feat: 로그인 페이지 구현 (#12)"
+git push origin feat/#12-login-page
+# → PR 생성 → 머지
+
+# 절대 금지
+git checkout main
+git commit ...   # ❌
+git push origin main  # ❌
+```
+
+현재 브랜치를 확인하지 않고 커밋하기 전에 **반드시 `git branch` 또는 `git status`로 현재 브랜치를 확인하세요.**
 
 ---
 

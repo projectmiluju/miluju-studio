@@ -1,8 +1,10 @@
 # Dependencies
 node_modules/
 
-# Build output
-dist/
+# Build output (dist/skills 는 GitHub Raw 릴리즈용으로 버전 관리)
+dist/*
+!dist/skills/
+!dist/skills/**
 
 # Environment variables
 .env

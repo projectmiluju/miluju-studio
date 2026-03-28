@@ -4,6 +4,7 @@ import { join } from "node:path";
 /** YAML frontmatter에서 추출한 메타데이터 */
 export interface SkillMeta {
   description: string;
+  version: string;
 }
 
 /** 파싱된 스킬 문서 */
@@ -25,11 +26,11 @@ export interface ParsedSkill {
 function parseFrontmatter(content: string): { meta: SkillMeta; body: string } {
   const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!match) {
-    return { meta: { description: "" }, body: content };
+    return { meta: { description: "", version: "0.0.0" }, body: content };
   }
 
   const [, yaml, body] = match;
-  const descMatch = yaml.match(/description:\s*\|?\s*\n?([\s\S]*)/);
+  const descMatch = yaml.match(/description:\s*\|?\s*\n?([\s\S]*?)(?=\n\w|\n---$|$)/);
   const description = descMatch
     ? descMatch[1]
         .split("\n")
@@ -38,7 +39,10 @@ function parseFrontmatter(content: string): { meta: SkillMeta; body: string } {
         .join(" ")
     : "";
 
-  return { meta: { description }, body: body.trimStart() };
+  const versionMatch = yaml.match(/^version:\s*"?([^"\n]+)"?/m);
+  const version = versionMatch ? versionMatch[1].trim() : "0.0.0";
+
+  return { meta: { description, version }, body: body.trimStart() };
 }
 
 /**
