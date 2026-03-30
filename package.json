@@ -1,6 +1,6 @@
 {
   "name": "miluju-studio",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "1인 개발자를 위한 AI 에이전트 워크플로우 OS",
   "homepage": "https://github.com/projectmiluju/miluju-studio",

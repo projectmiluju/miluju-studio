@@ -59,7 +59,9 @@ bun run miluju install --target ~/my-project
 bun run miluju install --no-issue-templates --target ~/my-project
 ```
 
-설치하면 다음 구조가 자동으로 생성됩니다:
+**원격 스킬:** miluju-studio 레포 안에 `dist/skills/`가 없을 때(예: 패키지로만 실행)는 GitHub **Releases** 최신 태그와 **Raw URL**로 스킬을 받습니다. 로컬에서 개발할 때는 `bun run gen`으로 만든 `dist/skills/`를 우선 사용합니다.
+
+설치하면 다음 구조가 자동으로 생성됩니다(이미 있으면 건너뜀):
 
 ```
 .github/
@@ -128,11 +130,11 @@ bun run build:browse-node
 
 | 스킬 | 역할 | 핵심 기능 |
 |------|------|-----------|
-| **spec** | 명세 | PRD 작성, 사고 방지 체크리스트, 6단계 진단 |
+| **spec** | 명세 | PRD, GitHub Issue 분해, **저장소 이슈 템플릿 우선**(없을 때만 스킬 권장안). 템플릿 추가·변경은 **승인 후** |
 | **ui** | 화면 | 디자인 시스템, Stitch 프로토타입, 한글 타이포그래피 |
-| **build** | 구현 | 7가지 안티패턴 차단, 한글 문자열 중앙화, 타입 안전 |
+| **build** | 구현 | 이슈 작업 시 **main/develop 직접 금지**, 기본 브랜치 동기화 후 **이슈 전용 브랜치**에서만 구현. 안티패턴 차단, 타입 안전 |
 | **qa** | 검증 | 테스트 시나리오 매트릭스, IME 입력 테스트, 버그 리포트 |
-| **ship** | 출시 | 커밋 위생, SemVer 자동화, 한글 CHANGELOG |
+| **ship** | 출시 | 커밋·PR, **저장소 PR 템플릿 우선**, SemVer·CHANGELOG. PR 템플릿 추가·변경은 **승인 후** |
 | **ops** | 운영 | 인프라 3-tier 선택, CI/CD, UTF-8 로그 검증 |
 | **docs** | 기록 | Dev Log, ADR, README 동기화, STATUS.md |
 
@@ -146,8 +148,12 @@ miluju-studio/
 │   ├── _base.md               ← 공통 원칙
 │   ├── spec.md ~ docs.md      ← 7개 스킬
 │
+├── dist/skills/               ← gen 출력 (GitHub Raw 릴리즈에도 포함)
+│   └── {agent}/               ← claude-code, cursor, codex …
+│
 ├── src/                       ← 스킬 생성기
 │   ├── gen-skill-docs.ts      ← CLI 진입점
+│   ├── issue-templates/       ← install 시 복사하는 GitHub 템플릿 소스
 │   └── lib/                   ← 파서, 변환기, 출력기
 │
 ├── browse/                    ← MCP 브라우저 서버
@@ -164,12 +170,17 @@ miluju-studio/
 │
 ├── bin/                       ← CLI 유틸리티
 │   ├── miluju.ts              ← 서브커맨드 라우터
+│   ├── lib/                   ← registry (GitHub Releases / Raw)
 │   └── commands/              ← install, doctor, update-check, update
 │
+├── .github/workflows/         ← 태그 push 시 Release 생성 등
 ├── setup                      ← 원클릭 설치
+├── CHANGELOG.md
 ├── package.json
 └── tsconfig.json
 ```
+
+릴리즈 노트와 버전 이력은 [CHANGELOG.md](./CHANGELOG.md)를 참고하세요. GitHub에서는 [Releases](https://github.com/projectmiluju/miluju-studio/releases)에서 태그별 변경 사항을 볼 수 있습니다.
 
 ## 설계 원칙
 

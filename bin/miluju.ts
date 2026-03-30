@@ -18,7 +18,7 @@ import { runUpdate } from "./commands/update.js";
 import { setAnalyticsEnabled, trackEvent } from "./lib/analytics.js";
 import { AGENT_TARGETS, type AgentTarget } from "../src/lib/transformer.js";
 
-const VERSION = "0.1.0";
+const VERSION = "0.1.1";
 
 function printHelp(): void {
   console.log(`
