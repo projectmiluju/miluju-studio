@@ -12,9 +12,6 @@
 - **qa** (스킬: `.agent/skills/qa/`)의 승인(APPROVED) 없이 릴리즈를 진행하지 마세요.
 - 사용자의 승인 없이 `git push`를 실행하지 마세요.
 
-version: "1.0.0"
----
-
 ## 릴리저 고유 원칙
 
 1. **`git add .`은 금지다.**
@@ -23,9 +20,6 @@ version: "1.0.0"
 
 2. **버전은 감이 아니라 규칙이다.**
    변경의 성격(호환성 깨짐? 새 기능? 버그 수정?)에 따라 기계적으로 SemVer를 따르세요.
-
-version: "1.0.0"
----
 
 ## 📌 커밋 메시지 규칙
 
@@ -64,9 +58,6 @@ version: "1.0.0"
 
 **헤더 규칙:** 50자 이내, 서술형("추가", "수정", "삭제"), 명령형 아님.
 
-version: "1.0.0"
----
-
 ## 🛠 워크플로우: 6단계 릴리즈 프로세스
 
 ### Phase 1: 변경 사항 분석
@@ -86,9 +77,6 @@ git log --oneline -10   # 최근 이력
 - 테스트(test):   [파일 목록]
 - 기타:          [파일 목록]
 ```
-
-version: "1.0.0"
----
 
 ### Phase 2: 커밋 분리 전략
 
@@ -114,9 +102,6 @@ version: "1.0.0"
 
 **사용자의 승인 없이 커밋하지 마세요.**
 
-version: "1.0.0"
----
-
 ### Phase 3: 커밋 메시지 생성
 
 Phase 2에서 승인된 분리에 따라 메시지를 생성합니다.
@@ -129,9 +114,6 @@ Phase 2에서 승인된 분리에 따라 메시지를 생성합니다.
   기존 이메일/비밀번호 외에 구글 계정으로 로그인할 수 있도록
   OAuth 2.0 플로우를 구현. 콜백 URL 처리 및 토큰 교환 로직 포함.
 ```
-
-version: "1.0.0"
----
 
 ### Phase 4: 버전 범핑 (SemVer)
 
@@ -150,9 +132,6 @@ version: "1.0.0"
 ```
 
 **v0.x.x 규칙:** 첫 정식 릴리즈 전. v1.0.0은 "프로덕션 준비 완료" 선언.
-
-version: "1.0.0"
----
 
 ### Phase 5: CHANGELOG & 릴리즈 노트
 
@@ -193,9 +172,6 @@ version: "1.0.0"
 git pull origin main && npm install
 ```
 
-version: "1.0.0"
----
-
 ### Phase 6: 실행 및 핸드오프
 
 #### 이슈 단위 커밋 + PR (일반 작업)
@@ -206,7 +182,7 @@ git switch -c feat/#12-social-login
 git add [파일 목록]
 git commit -m "feat: 구글 OAuth 소셜 로그인 기능 추가"
 git push -u origin feat/#12-social-login
-gh pr create --title "feat: 구글 OAuth 소셜 로그인 기능 추가 (#12)" --body "Closes #12 ..."
+gh pr create --title "feat: 구글 OAuth 소셜 로그인 기능 추가 (#12)" --body "..."  # 본문은 저장소 PR 템플릿 우선, 없으면 Closes #12 등 최소 포함
 # PR 머지 후
 git switch main && git pull
 git branch -d feat/#12-social-login
@@ -223,9 +199,6 @@ git push origin --tags
 |----------|---------|---------------|
 | 서버 배포 | **ops** (스킬: `.agent/skills/ops/`) | 릴리즈 태그 + 변경 내역 요약 |
 | 개발 기록 | **docs** (스킬: `.agent/skills/docs/`) | CHANGELOG + 기술적 결정 사항 |
-
-version: "1.0.0"
----
 
 ## 🌿 이슈 기반 브랜치 전략
 
@@ -266,15 +239,19 @@ main                                  ← 항상 배포 가능한 코드
 2. 브랜치 생성    →  git switch -c feat/#12-social-login
 3. 구현 + 커밋    →  (build/qa 진행)
 4. 푸시           →  git push -u origin feat/#12-social-login
-5. PR 생성       →  gh pr create (PR 템플릿 사용)
+5. PR 생성       →  gh pr create (저장소 `.github` PR 템플릿 우선, 없으면 스킬 권장 본문)
 6. 리뷰/머지     →  gh pr merge (이슈 자동 닫기)
 7. 브랜치 정리    →  git switch main && git pull && git branch -d feat/#12-social-login
 ```
 
-version: "1.0.0"
----
-
 ## 📝 PR 템플릿 및 생성
+
+### 저장소 PR 템플릿 준수 (필수)
+
+| 규칙 | 설명 |
+|------|------|
+| **프로젝트 템플릿 우선** | PR을 만들기 전에 `.github/pull_request_template.md` 또는 `.github/PULL_REQUEST_TEMPLATE/*.md` 등 저장소에 정의된 PR 템플릿이 있는지 확인합니다. **있으면 그 형식을 반드시 따릅니다.** PR 본문은 해당 템플릿의 섹션에 맞춰 변경 요약·`Closes #`·체크리스트 등을 채웁니다. `gh pr create` 사용 시 템플릿을 채운 내용을 `--body` 또는 `--body-file`로 넘기거나, GitHub 웹에서 템플릿이 자동 삽입된 편집 화면으로 안내합니다. |
+| **템플릿 신규·수정은 승인 후** | 저장소에 없는 **새 PR 템플릿**을 추가하거나, **기존 PR 템플릿을 수정·삭제**해야 하는 경우 — 변경 이유와 영향을 짧게 정리해 **제안하고, 사용자의 명시적 승인을 받은 뒤에만** 진행합니다. **승인 없이** `.github` 아래 PR 템플릿 관련 파일을 만들거나 편집하지 않습니다. |
 
 ### PR 제목 규칙
 
@@ -291,7 +268,9 @@ version: "1.0.0"
 ❌ 소셜 로그인 추가              ← type 누락
 ```
 
-### PR 템플릿
+### PR 본문 권장안 (저장소에 템플릿이 없을 때)
+
+아래는 이 스킬이 권장하는 기본 형식입니다. **저장소에 이미 PR 템플릿이 있으면 저장소 템플릿을 우선**하고, 없을 때만 아래 구조로 본문을 채웁니다.
 
 ```markdown
 ## 📌 관련 이슈
@@ -321,6 +300,8 @@ Closes #{이슈번호}
 ```
 
 ### PR 생성 명령
+
+아래는 **저장소에 PR 템플릿이 없을 때**의 예시입니다. 템플릿이 있으면 그 형식에 맞춰 동일 정보(특히 `Closes #`)를 넣습니다.
 
 ```bash
 git push -u origin feat/#12-social-login
@@ -363,9 +344,6 @@ Closes #12
 Closes #13
 ```
 
-version: "1.0.0"
----
-
 ## 에스컬레이션 (역할 고유)
 
 | 상황 | 대응 |
@@ -374,9 +352,6 @@ version: "1.0.0"
 | 머지 충돌 | 충돌 파일과 양쪽 변경 보여주고 사용자에게 선택 요청. |
 | 버전 범핑 판단 애매 | MINOR/MAJOR 두 근거 제시 → 사용자 결정. |
 | 잘못된 커밋/태그 생성 | `git revert` 또는 `git tag -d` 제안. force push는 명시적 승인 필수. |
-
-version: "1.0.0"
----
 
 ## 완료 상태
 
