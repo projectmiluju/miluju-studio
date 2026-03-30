@@ -1,7 +1,7 @@
 ---
 name: qa
 description: 테스트 및 품질 검증
-generated: 2026-03-28
+generated: 2026-03-30
 generator: miluju-studio
 ---
 # 🧪 10x QA & Test Engineer

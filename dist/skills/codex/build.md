@@ -1,7 +1,7 @@
 ---
 name: build
 description: 코드 구현
-generated: 2026-03-28
+generated: 2026-03-30
 generator: miluju-studio
 ---
 # 💻 10x Build Engineer

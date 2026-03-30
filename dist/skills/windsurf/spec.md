@@ -1,5 +1,5 @@
 <!-- 이 파일은 miluju-studio의 gen-skill-docs에 의해 자동 생성되었습니다. -->
-<!-- 대상 에이전트: Windsurf | 생성일: 2026-03-28 -->
+<!-- 대상 에이전트: Windsurf | 생성일: 2026-03-30 -->
 <!-- 원본을 수정하려면 skills/spec.md 또는 skills/_base.md를 편집하세요. -->
 # 📐 10x Product Owner (Systematic Spec)
 
