@@ -93,6 +93,29 @@ version: "1.0.0"
 | 에러 복구 | 에러 발생 후 복구할 수 있는가? |
 | 반응형 | 320px, 768px, 1440px에서 핵심 플로우가 동작하는가? |
 
+#### 🔭 miluju-browse MCP (실제 Chromium 렌더 감사)
+
+**목적:** Playwright 기반 **miluju-browse** MCP로 브라우저를 띄워, **이미 구현된 페이지**의 한글 UI·접근성·디자인 토큰을 도구 기반으로 점검합니다. (Stitch MCP의 프로토타입 생성과는 별개입니다.)
+
+**전제:** 에이전트에 **`miluju-browse`** MCP 서버가 등록되어 있어야 합니다. (miluju-studio를 쓰는 프로젝트는 CLI 설치 시 `.cursor/mcp.json` 등에 추가될 수 있습니다. 서버는 레포의 `browse/server.ts` / `bun run browse`로 동작합니다.)
+
+**언제 쓰는가:** 프론트엔드·UI 변경이 있고, 로컬 dev 서버나 스테이징 등 **열 수 있는 URL**이 있을 때. 단위/E2E 테스트와 **병행**합니다.
+
+**도구 (MCP):**
+| 도구 | 용도 |
+|------|------|
+| `miluju_korean_audit` | 한글 렌더링·줄바꿈·폰트 등 품질 검사 |
+| `miluju_a11y_audit` | 접근성(WCAG 중심) 검사 |
+| `miluju_design_token_audit` | 하드코딩 값 vs 디자인 토큰 일관성 |
+| `miluju_full_audit` | 위 항목을 한 번에 실행 |
+
+**절차:**
+1. 검증 대상 앱을 실행해 URL을 확보합니다.
+2. 감사 도구 호출 시 **`url` 인자**로 해당 페이지를 지정하거나, MCP가 연 페이지를 기준으로 실행합니다.
+3. 리포트의 실패·경고는 **Phase 5 버그 리포트** 형식으로 정리해 **build**에 넘깁니다.
+
+**HARD GATE와의 관계:** 이 감사는 **자동화된 테스트 코드(Jest/Vitest/Playwright E2E 등)를 대체하지 않습니다.** 위 Phase 3의 요구(테스트 코드 작성)는 그대로 유지합니다. MCP는 렌더링 품질·a11y·토큰 측면의 **보조 검증**입니다.
+
 version: "1.0.0"
 ---
 
@@ -205,6 +228,7 @@ version: "1.0.0"
 - [ ] P1 미통과 항목은 알려진 이슈로 문서화
 - [ ] E2E 핵심 플로우 전부 통과
 - [ ] 기존 테스트가 깨지지 않음
+- [ ] (프론트/UI 변경 시, **miluju-browse MCP 사용 가능한 경우**) `miluju_full_audit` 등으로 감사를 실행하고, P0급 이슈는 없거나 이슈로 추적됨
 
 **승인 시:** `VERDICT: ✅ APPROVED` → **ship**에게 커밋/릴리즈 진행
 **반려 시:** `VERDICT: ❌ REJECTED` → **build**에게 버그 리포트와 함께 수정 요청
@@ -219,6 +243,7 @@ version: "1.0.0"
 | 테스트 환경 구성 불가 (DB, 외부 API 키) | STOP. 사용자에게 환경 설정 요청. |
 | 테스트 코드 자체 빌드 실패 | 프레임워크 설정 확인 → 3회 시도 후 STOP. |
 | 브라우저 환경 필요 (E2E) | Playwright/Cypress 설치 여부 확인 → 사용자에게 허락. |
+| **miluju-browse** MCP 미설정·오동작 | 컴포넌트/E2E 테스트로 동등하게 커버되면 진행. 아니면 MCP 등록(`miluju-browse`) 또는 사용자에게 환경 확인 요청. |
 
 version: "1.0.0"
 ---

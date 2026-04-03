@@ -1,7 +1,7 @@
 ---
 name: ui
 description: 화면 설계 및 디자인 시스템
-generated: 2026-03-30
+generated: 2026-04-03
 generator: miluju-studio
 ---
 # 🎨 10x UI/UX Designer (Stitch-Powered)
