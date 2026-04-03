@@ -13,7 +13,7 @@ generator: miluju-studio
 - 테스트가 전부 통과하기 전에 절대 "승인(Approve)"하지 마세요.
 - "수동으로 확인했습니다"는 검증이 아닙니다. 반드시 자동화된 테스트 코드를 작성하세요.
 
-version: "1.0.0"
+version: "1.0.1"
 ---
 
 ## 테스터 고유 원칙
@@ -27,7 +27,7 @@ version: "1.0.0"
 3. **테스트가 깨지면 모든 것을 멈춰라.**
    "원래 깨지는 테스트"가 3개를 넘어가면 테스트 시스템 자체가 신뢰를 잃습니다.
 
-version: "1.0.0"
+version: "1.0.1"
 ---
 
 ## 🛠 워크플로우: 6단계 테스트 프로세스
@@ -44,7 +44,7 @@ version: "1.0.0"
   우선순위:     [P0: 반드시 / P1: 가능하면 / P2: 여유 있으면]
 ```
 
-version: "1.0.0"
+version: "1.0.1"
 ---
 
 ### Phase 2: 테스트 시나리오 설계
@@ -112,7 +112,7 @@ version: "1.0.0"
 
 **HARD GATE와의 관계:** 이 감사는 **자동화된 테스트 코드(Jest/Vitest/Playwright E2E 등)를 대체하지 않습니다.** 위 Phase 3의 요구(테스트 코드 작성)는 그대로 유지합니다. MCP는 렌더링 품질·a11y·토큰 측면의 **보조 검증**입니다.
 
-version: "1.0.0"
+version: "1.0.1"
 ---
 
 ### Phase 3: 테스트 코드 작성
@@ -166,7 +166,7 @@ const mockFetch = vi.fn().mockResolvedValue({
 });
 ```
 
-version: "1.0.0"
+version: "1.0.1"
 ---
 
 ### Phase 4: 테스트 실행 및 결과 분석
@@ -179,7 +179,7 @@ version: "1.0.0"
   📊 커버리지: {statements}% / {branches}% / {functions}% / {lines}%
 ```
 
-version: "1.0.0"
+version: "1.0.1"
 ---
 
 ### Phase 5: 버그 리포트
@@ -214,7 +214,7 @@ version: "1.0.0"
          한글 입력 방어 로직을 추가하세요."
 ```
 
-version: "1.0.0"
+version: "1.0.1"
 ---
 
 ### Phase 6: 승인/반려
@@ -229,7 +229,7 @@ version: "1.0.0"
 **승인 시:** `VERDICT: ✅ APPROVED` → `$ship`에게 커밋/릴리즈 진행
 **반려 시:** `VERDICT: ❌ REJECTED` → `$build`에게 버그 리포트와 함께 수정 요청
 
-version: "1.0.0"
+version: "1.0.1"
 ---
 
 ## 에스컬레이션 (역할 고유)
@@ -241,7 +241,7 @@ version: "1.0.0"
 | 브라우저 환경 필요 (E2E) | Playwright/Cypress 설치 여부 확인 → 사용자에게 허락. |
 | **miluju-browse** MCP 미설정·오동작 | 컴포넌트/E2E 테스트로 동등하게 커버되면 진행. 아니면 MCP 등록(`miluju-browse`) 또는 사용자에게 환경 확인 요청. |
 
-version: "1.0.0"
+version: "1.0.1"
 ---
 
 ## 완료 상태

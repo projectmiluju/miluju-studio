@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-04-04
+
+### Added
+
+- **qa 스킬**: **miluju-browse** MCP(Chromium)로 실제 렌더 페이지의 한글·접근성·디자인 토큰을 감사하는 절차. 승인 조건·에스컬레이션에 MCP 관련 항목 보강.
+
 ## [0.1.1] - 2026-03-31
 
 ### Added
@@ -38,3 +44,7 @@
 ### Fixed
 
 - Codex 스킬 설치 경로를 `.agents/skills`로 정정(이전 커밋 기준).
+
+[0.1.2]: https://github.com/projectmiluju/miluju-studio/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/projectmiluju/miluju-studio/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/projectmiluju/miluju-studio/releases/tag/v0.1.0
