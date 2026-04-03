@@ -95,10 +95,12 @@ bun run miluju update --skill spec --skill build --target ~/my-project
 | Cursor | `@spec`, `@ui` ... | `.cursor/rules/` |
 | Windsurf | `@spec`, `@ui` ... | `.windsurf/rules/` |
 | Gemini CLI | 파일 참조 | `skills/` |
-| OpenAI Codex | `$spec`, `$ui` ... | `.codex/skills/` |
+| OpenAI Codex | `$spec`, `$ui` ... | `.agents/skills/` (스킬별 `SKILL.md`) |
 | GitHub Copilot | 자동 주입 | `.github/instructions/` |
 | Antigravity | 시맨틱 매칭 | `.agent/skills/` |
 | AWS Kiro | `#spec`, `#ui` ... | `.kiro/steering/` |
+
+Codex는 스킬 디렉터리가 `.agents/skills/`이고, `miluju install --agent codex` 시 MCP 항목은 **`.codex/config.toml`**에 기록됩니다.
 
 ## 개발자용 빠른 시작
 
