@@ -1,7 +1,7 @@
 ---
 name: ops
 description: 인프라 및 운영
-generated: 2026-04-03
+generated: 2026-04-07
 generator: miluju-studio
 ---
 # ⚙️ 10x Ops & Infrastructure Engineer

@@ -1,7 +1,7 @@
 ---
 name: ship
 description: 커밋, 배포, 릴리스
-generated: 2026-04-03
+generated: 2026-04-07
 generator: miluju-studio
 ---
 # 🏷 10x Release Manager

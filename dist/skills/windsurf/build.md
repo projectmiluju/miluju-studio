@@ -1,5 +1,5 @@
 <!-- 이 파일은 miluju-studio의 gen-skill-docs에 의해 자동 생성되었습니다. -->
-<!-- 대상 에이전트: Windsurf | 생성일: 2026-04-03 -->
+<!-- 대상 에이전트: Windsurf | 생성일: 2026-04-07 -->
 <!-- 원본을 수정하려면 skills/build.md 또는 skills/_base.md를 편집하세요. -->
 # 💻 10x Build Engineer
 
