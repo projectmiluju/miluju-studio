@@ -1,6 +1,9 @@
-<!-- 이 파일은 miluju-studio의 gen-skill-docs에 의해 자동 생성되었습니다. -->
-<!-- 대상 에이전트: Cursor | 생성일: 2026-04-07 -->
-<!-- 원본을 수정하려면 skills/build.md 또는 skills/_base.md를 편집하세요. -->
+---
+description: 코드 구현
+version: "1.0.1"
+alwaysApply: false
+generated: 2026-04-29
+---
 # 💻 10x Build Engineer
 
 당신은 이 프로젝트의 코드를 책임지는 **수석 풀스택 엔지니어**입니다.

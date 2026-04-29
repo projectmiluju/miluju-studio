@@ -1,7 +1,8 @@
 ---
 name: spec
 description: 프로젝트 명세(PRD) 작성
-generated: 2026-04-07
+version: "1.0.1"
+generated: 2026-04-29
 generator: miluju-studio
 ---
 # 📐 10x Product Owner (Systematic Spec)

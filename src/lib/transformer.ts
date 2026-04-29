@@ -92,29 +92,93 @@ const SKILL_DESCRIPTIONS: Record<string, string> = {
 /**
  * 에이전트별 헤더 코멘트
  */
-function getHeader(target: AgentTarget, skillName: string): string {
-  const timestamp = new Date().toISOString().split("T")[0];
+/** YAML frontmatter 블록을 만듭니다. */
+function makeFrontmatter(lines: string[]): string {
+  return ["---", ...lines, "---", ""].join("\n");
+}
 
-  // Codex는 YAML frontmatter 필수
-  if (target === "codex") {
-    const desc = SKILL_DESCRIPTIONS[skillName] ?? skillName;
-    return [
-      "---",
-      `name: ${skillName}`,
-      `description: ${desc}`,
-      `generated: ${timestamp}`,
-      `generator: miluju-studio`,
-      "---",
-      "",
-    ].join("\n");
-  }
-
+/** 자동 생성 안내용 HTML 코멘트(frontmatter 미사용 에이전트용). */
+function makeCommentHeader(
+  target: AgentTarget,
+  skillName: string,
+  version: string,
+  timestamp: string
+): string {
   return [
     `<!-- 이 파일은 miluju-studio의 gen-skill-docs에 의해 자동 생성되었습니다. -->`,
-    `<!-- 대상 에이전트: ${AGENT_LABELS[target]} | 생성일: ${timestamp} -->`,
+    `<!-- 대상 에이전트: ${AGENT_LABELS[target]} | 스킬 버전: ${version} | 생성일: ${timestamp} -->`,
     `<!-- 원본을 수정하려면 skills/${skillName}.md 또는 skills/_base.md를 편집하세요. -->`,
     "",
   ].join("\n");
+}
+
+function getHeader(
+  target: AgentTarget,
+  skillName: string,
+  version: string
+): string {
+  const timestamp = new Date().toISOString().split("T")[0];
+  const desc = SKILL_DESCRIPTIONS[skillName] ?? skillName;
+
+  switch (target) {
+    case "codex":
+      // .agents/skills/{name}/SKILL.md — name·description 필수
+      return makeFrontmatter([
+        `name: ${skillName}`,
+        `description: ${desc}`,
+        `version: "${version}"`,
+        `generated: ${timestamp}`,
+        `generator: miluju-studio`,
+      ]);
+
+    case "claude-code":
+      // .claude/commands/*.md — description은 슬래시 메뉴에 노출됨
+      return makeFrontmatter([
+        `description: ${desc}`,
+        `version: "${version}"`,
+        `generated: ${timestamp}`,
+      ]);
+
+    case "cursor":
+      // .cursor/rules/*.mdc — alwaysApply: false로 @멘션 호출 전용임을 명시
+      return makeFrontmatter([
+        `description: ${desc}`,
+        `version: "${version}"`,
+        `alwaysApply: false`,
+        `generated: ${timestamp}`,
+      ]);
+
+    case "windsurf":
+      // .windsurf/rules/*.md — trigger: manual로 @멘션 호출 전용임을 명시
+      return makeFrontmatter([
+        `description: ${desc}`,
+        `version: "${version}"`,
+        `trigger: manual`,
+        `generated: ${timestamp}`,
+      ]);
+
+    case "copilot":
+      // .github/instructions/*.md — applyTo로 적용 범위 지정
+      return makeFrontmatter([
+        `description: ${desc}`,
+        `version: "${version}"`,
+        `applyTo: '**'`,
+        `generated: ${timestamp}`,
+      ]);
+
+    case "antigravity":
+      // .agent/skills/ — 시맨틱 매칭에 description이 핵심 신호
+      return makeFrontmatter([
+        `description: ${desc}`,
+        `version: "${version}"`,
+        `generated: ${timestamp}`,
+      ]);
+
+    case "gemini":
+    case "kiro":
+      // frontmatter 컨벤션 불확실 — HTML 코멘트로 보수적으로 처리
+      return makeCommentHeader(target, skillName, version, timestamp);
+  }
 }
 
 /** 역할 목록을 에이전트별 호출 구문으로 변환 */
@@ -183,9 +247,10 @@ function transformBaseContent(
 export function transformForAgent(
   mergedContent: string,
   target: AgentTarget,
-  skillName: string
+  skillName: string,
+  version: string
 ): string {
-  const header = getHeader(target, skillName);
+  const header = getHeader(target, skillName, version);
 
   const parts = mergedContent.split(
     "# 부록: miluju-studio 공통 원칙"

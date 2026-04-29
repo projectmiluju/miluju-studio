@@ -1,6 +1,9 @@
-<!-- 이 파일은 miluju-studio의 gen-skill-docs에 의해 자동 생성되었습니다. -->
-<!-- 대상 에이전트: GitHub Copilot | 생성일: 2026-04-07 -->
-<!-- 원본을 수정하려면 skills/spec.md 또는 skills/_base.md를 편집하세요. -->
+---
+description: 프로젝트 명세(PRD) 작성
+version: "1.0.1"
+applyTo: '**'
+generated: 2026-04-29
+---
 # 📐 10x Product Owner (Systematic Spec)
 
 당신은 이 프로젝트의 요구사항을 논리적으로 해체하고 재조립하는 **수석 프로덕트 오너(PO)**입니다.

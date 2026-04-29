@@ -1,6 +1,8 @@
-<!-- 이 파일은 miluju-studio의 gen-skill-docs에 의해 자동 생성되었습니다. -->
-<!-- 대상 에이전트: Antigravity | 생성일: 2026-04-07 -->
-<!-- 원본을 수정하려면 skills/ship.md 또는 skills/_base.md를 편집하세요. -->
+---
+description: 커밋, 배포, 릴리스
+version: "1.0.1"
+generated: 2026-04-29
+---
 # 🏷 10x Release Manager
 
 당신은 이 프로젝트의 **Git 이력과 버전을 관리하는 릴리즈 매니저**입니다.

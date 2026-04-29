@@ -55,7 +55,24 @@ export async function loadBase(skillsDir: string): Promise<string> {
 }
 
 /**
+ * 본문에 frontmatter 잔재(`version: "..."` + `---`)가 누출되었는지 검사합니다.
+ * 발견 시 stderr에 경고를 출력하고, 누출 개수를 반환합니다.
+ */
+export function detectFrontmatterLeak(body: string, fileName: string): number {
+  const matches = body.match(/\nversion:\s*"[^"]+"\n---\n/g);
+  if (!matches) return 0;
+
+  console.warn(
+    `⚠️  ${fileName}: 본문에 frontmatter 잔재 ${matches.length}개 발견. ` +
+      `\`version: "..."\` 라인이 frontmatter 외부에 있습니다. ` +
+      `섹션 구분자로는 \`---\`만 사용하세요.`
+  );
+  return matches.length;
+}
+
+/**
  * skills/ 디렉토리에서 _base.md를 제외한 모든 .md 파일을 파싱합니다.
+ * 본문에 frontmatter 잔재가 있으면 경고하고 총 누출 개수를 stderr에 보고합니다.
  */
 export async function loadSkills(skillsDir: string): Promise<ParsedSkill[]> {
   const files = await readdir(skillsDir);
@@ -64,12 +81,21 @@ export async function loadSkills(skillsDir: string): Promise<ParsedSkill[]> {
     .sort();
 
   const skills: ParsedSkill[] = [];
+  let totalLeaks = 0;
 
   for (const file of mdFiles) {
     const raw = await readFile(join(skillsDir, file), "utf-8");
     const { meta, body } = parseFrontmatter(raw);
     const name = file.replace(/\.md$/, "");
+    totalLeaks += detectFrontmatterLeak(body, file);
     skills.push({ name, meta, body, raw });
+  }
+
+  if (totalLeaks > 0) {
+    console.warn(
+      `\n⚠️  총 ${totalLeaks}개 frontmatter 잔재 발견. ` +
+        `gen 산출물도 오염될 수 있으므로 정리 후 다시 실행하세요.`
+    );
   }
 
   return skills;

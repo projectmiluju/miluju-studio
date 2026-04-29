@@ -49,7 +49,12 @@ async function main(): Promise<void> {
       const merged = mergeBaseIntoSkill(baseBody, skill);
 
       // 에이전트별 변환
-      const transformed = transformForAgent(merged, target, skill.name);
+      const transformed = transformForAgent(
+        merged,
+        target,
+        skill.name,
+        skill.meta.version
+      );
 
       // 파일 출력
       const path = await writeSkill(outDir, target, skill.name, transformed);
